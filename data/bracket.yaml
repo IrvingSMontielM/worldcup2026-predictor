@@ -1,0 +1,53 @@
+# bracket.yaml
+# Estructura de la fase de eliminacion de la Copa Mundial 2026 (48 equipos).
+# Tomada del calendario oficial. Cada partido define dos "slots":
+#   "A1"  -> primero del grupo A
+#   "B2"  -> segundo del grupo B
+#   "3:ABCDF" -> un tercero clasificado proveniente de uno de esos grupos
+#   "W74" -> ganador del partido 74
+#   "L101"-> perdedor del partido 101
+# El simulador resuelve los slots de forma progresiva.
+
+round_of_32:   # Dieciseisavos (partidos 73-88)
+  73:  {home: "A2", away: "B2", venue: "LA"}
+  74:  {home: "E1", away: "3:ABCDF", venue: "BOS"}
+  75:  {home: "F1", away: "C2", venue: "MTY"}
+  76:  {home: "C1", away: "F2", venue: "HOU"}
+  77:  {home: "I1", away: "3:CDFGH", venue: "NYNJ"}
+  78:  {home: "E2", away: "I2", venue: "DAL"}
+  79:  {home: "A1", away: "3:CEFHI", venue: "CDMX"}
+  80:  {home: "L1", away: "3:EHIJK", venue: "ATL"}
+  81:  {home: "D1", away: "3:BEFIJ", venue: "SF"}
+  82:  {home: "G1", away: "3:AEHIJ", venue: "SEA"}
+  83:  {home: "K2", away: "L2", venue: "TOR"}
+  84:  {home: "H1", away: "J2", venue: "LA"}
+  85:  {home: "B1", away: "3:EFGIJ", venue: "VAN"}
+  86:  {home: "J1", away: "H2", venue: "MIA"}
+  87:  {home: "K1", away: "3:DEIJL", venue: "KC"}
+  88:  {home: "D2", away: "G2", venue: "DAL"}
+
+round_of_16:   # Octavos (partidos 89-96)
+  89:  {home: "W74", away: "W77", venue: "PHI"}
+  90:  {home: "W73", away: "W75", venue: "HOU"}
+  91:  {home: "W76", away: "W78", venue: "NYNJ"}
+  92:  {home: "W79", away: "W80", venue: "CDMX"}
+  93:  {home: "W83", away: "W84", venue: "DAL"}
+  94:  {home: "W81", away: "W82", venue: "SEA"}
+  95:  {home: "W86", away: "W88", venue: "ATL"}
+  96:  {home: "W85", away: "W87", venue: "VAN"}
+
+quarter_finals:  # Cuartos (97-100)
+  97:  {home: "W89", away: "W90", venue: "BOS"}
+  98:  {home: "W93", away: "W94", venue: "LA"}
+  99:  {home: "W91", away: "W92", venue: "MIA"}
+  100: {home: "W95", away: "W96", venue: "KC"}
+
+semi_finals:   # Semifinales (101-102)
+  101: {home: "W97", away: "W98", venue: "DAL"}
+  102: {home: "W99", away: "W100", venue: "ATL"}
+
+third_place:   # Tercer puesto (103)
+  103: {home: "L101", away: "L102", venue: "MIA"}
+
+final:         # Final (104)
+  104: {home: "W101", away: "W102", venue: "NYNJ"}

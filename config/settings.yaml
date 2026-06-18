@@ -1,0 +1,64 @@
+# settings.yaml
+# Parametros del modelo. Todos editables sin tocar el codigo.
+
+ratings:
+  # Mezcla del rating de equipo: prior estatico (FIFA) + Elo dinamico (resultados).
+  w_fifa: 0.50          # peso del ranking/puntos FIFA
+  w_elo: 0.50           # peso del Elo actualizado con partidos
+  elo_scale: 0.55       # puntos FIFA -> Elo (Elo0 = 1500 + (pts-media)*scale)
+  elo_k: 40             # factor K de actualizacion (Mundial = alto)
+  elo_mov: true         # ponderar por margen de victoria
+  home_elo_bonus: 65    # bonus Elo para anfitrion jugando en casa (solo Elo)
+
+decay:
+  # Decaimiento temporal exponencial: peso = exp(-xi * dias_desde_partido).
+  # xi = ln(2)/half_life_days. half_life_days mas chico = mas peso a lo reciente.
+  half_life_days: 365   # vida media de 1 anio
+
+model:
+  # Dixon-Coles regularizado hacia el prior de rating.
+  ridge_lambda: 8.0     # fuerza del prior (mayor = mas pegado al rating)
+  atk_scale: 0.34       # dispersion del prior de ataque por unidad de rating-z
+  dfn_scale: 0.30       # dispersion del prior de defensa por unidad de rating-z
+  base_total_goals: 2.65  # goles totales esperados en un partido neutro promedio
+  home_adv_init: 0.26   # ventaja de localia inicial (log-escala)
+  rho_init: -0.06       # correlacion DC para marcadores bajos
+  max_goals_grid: 10    # tope de la rejilla de marcadores para calculo analitico
+
+context:
+  # Ajustes contextuales (multiplicadores acotados sobre goles esperados).
+  altitude_ref_m: 500       # altitud sin penalizacion
+  altitude_penalty_per_km: 0.07   # penalizacion por km sobre la referencia para no aclimatados
+  altitude_home_nations: ["MEX", "ECU"]  # seleccionados habituados a altitud
+  heat_wbgt_threshold: 28   # umbral de estres por calor (C aprox)
+  heat_penalty_per_deg: 0.012
+  travel_penalty_per_1000km: 0.02  # penalizacion por cada 1000 km recorridos desde el partido previo
+  travel_cap: 0.06          # tope de penalizacion por viaje
+  crowd_home_weight: 0.012  # cuanto suma la asistencia local a la ventaja de localia
+  attendance_default: 0.95  # % de aforo por defecto
+
+simulation:
+  n_match: 20000        # simulaciones por partido (mercados y narrativa)
+  n_tournament: 20000   # simulaciones de torneo completo
+  seed: 2026            # semilla reproducible (null para aleatoria)
+
+markets:
+  # Tasas base por equipo (se escalan con la fuerza ofensiva relativa al promedio).
+  base_corners: 5.0
+  base_shots: 12.0
+  shots_on_target_ratio: 0.35
+  base_cards_match: 4.2     # tarjetas totales por partido (ambos equipos)
+  red_card_prob: 0.08       # prob. de al menos una roja en el partido
+  tension_card_boost: 0.6   # cuanto suben las tarjetas en partidos parejos
+
+blend:
+  # Mezcla con el mercado (Polymarket, Betano, casas, etc.) si hay datos.
+  w_market: 0.35        # peso del mercado en el 1X2 final (0 = solo modelo)
+
+player_variance:
+  # Factor de individualidad: momentos de figura que pueden romper lo esperado.
+  star_event_base_prob: 0.18   # prob. base de momento de figura por equipo y partido
+  star_goal_share: 0.7         # de esos momentos, fraccion que es gol extra
+  injury_doubtful_penalty: 0.04  # penalizacion a goles esperados si la figura es duda
+  injury_out_penalty: 0.10       # penalizacion si la figura esta fuera
+  form_span: 0.10              # rango del efecto forma sobre goles esperados (+/-)

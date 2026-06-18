@@ -1,0 +1,17 @@
+code,name_es,country,lat,lon,altitude_m,capacity,temp_c,humidity
+CDMX,Estadio Ciudad de Mexico,MEX,19.303,-99.15,2240,83000,19,0.65
+GDL,Estadio Guadalajara,MEX,20.681,-103.462,1566,48000,22,0.55
+MTY,Estadio Monterrey,MEX,25.669,-100.244,540,53000,28,0.6
+ATL,Estadio Atlanta,USA,33.755,-84.401,320,71000,27,0.7
+BOS,Estadio Boston,USA,42.091,-71.264,30,65000,22,0.65
+DAL,Estadio Dallas,USA,32.747,-97.093,180,80000,31,0.6
+HOU,Estadio Houston,USA,29.685,-95.411,15,72000,30,0.75
+KC,Estadio Kansas City,USA,39.049,-94.484,270,76000,28,0.65
+LA,Estadio Los Angeles,USA,33.953,-118.339,30,70000,22,0.65
+MIA,Estadio Miami,USA,25.958,-80.239,2,65000,31,0.75
+NYNJ,Estadio Nueva York NJ,USA,40.814,-74.074,5,82000,26,0.65
+PHI,Estadio Filadelfia,USA,39.901,-75.168,12,69000,27,0.68
+SF,Estadio Bahia de San Francisco,USA,37.403,-121.969,4,68000,22,0.6
+SEA,Estadio Seattle,USA,47.595,-122.332,5,69000,20,0.6
+TOR,Estadio Toronto,CAN,43.633,-79.418,80,45000,23,0.65
+VAN,Estadio BC Place Vancouver,CAN,49.277,-123.112,5,54000,20,0.7
