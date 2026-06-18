@@ -1,0 +1,59 @@
+name: Sincronizacion en vivo
+
+# Corre periodicamente durante el Mundial: ingiere resultados finalizados,
+# reajusta el modelo, simula el torneo y versiona las salidas en live/.
+on:
+  schedule:
+    # Cada 3 horas (UTC). GitHub puede retrasar los cron bajo carga.
+    - cron: "0 */3 * * *"
+  workflow_dispatch: {}   # permite dispararlo a mano desde la pestana Actions
+
+permissions:
+  contents: write          # necesario para que el bot haga push de los cambios
+
+concurrency:
+  group: sync-en-vivo
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Clonar repo
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Elegir proveedor de datos
+        # Si existe el secreto API_FOOTBALL_KEY usa API-Football; si no, el
+        # proveedor gratuito de codigo abierto (mejor esfuerzo, sin key).
+        run: |
+          if [ -n "${{ secrets.API_SPORTS_KEY }}" ]; then
+            echo "WC_PROVIDER=apifootball" >> "$GITHUB_ENV"
+          else
+            echo "WC_PROVIDER=opensource" >> "$GITHUB_ENV"
+          fi
+
+      - name: Ejecutar ciclo en vivo
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: python scripts/sync.py --n 20000
+
+      - name: Commit y push de las salidas
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add live data/fixtures_group.csv
+          if git diff --staged --quiet; then
+            echo "Sin cambios; no hay nada que commitear."
+          else
+            git commit -m "Actualizacion en vivo $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
