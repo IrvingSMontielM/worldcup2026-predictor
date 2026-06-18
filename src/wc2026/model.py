@@ -162,7 +162,14 @@ def grid_markets(grid: np.ndarray) -> dict:
     p_away = np.triu(grid, 1).sum()
     total = idx[:, None] + idx[None, :]
     p_over = grid[total >= 3].sum()
+    p_over15 = grid[total >= 2].sum()
+    p_over35 = grid[total >= 4].sum()
     p_btts = grid[1:, 1:].sum()
+    # totales por equipo (probabilidad de marcar mas de 0.5 y 1.5 goles)
+    p_home_o05 = grid[1:, :].sum()
+    p_home_o15 = grid[2:, :].sum()
+    p_away_o05 = grid[:, 1:].sum()
+    p_away_o15 = grid[:, 2:].sum()
     # top marcadores
     flat = [((i, j), grid[i, j]) for i in range(n) for j in range(n)]
     flat.sort(key=lambda t: t[1], reverse=True)
@@ -171,6 +178,10 @@ def grid_markets(grid: np.ndarray) -> dict:
     exp_a = float((idx[None, :] * grid).sum())
     return dict(p_home=float(p_home), p_draw=float(p_draw), p_away=float(p_away),
                 p_over25=float(p_over), p_under25=float(1 - p_over),
+                p_over15=float(p_over15), p_under15=float(1 - p_over15),
+                p_over35=float(p_over35),
+                p_home_over05=float(p_home_o05), p_home_over15=float(p_home_o15),
+                p_away_over05=float(p_away_o05), p_away_over15=float(p_away_o15),
                 p_btts=float(p_btts), top_scores=top,
                 exp_goals_home=exp_h, exp_goals_away=exp_a)
 

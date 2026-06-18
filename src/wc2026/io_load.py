@@ -60,6 +60,13 @@ def load_market_odds() -> pd.DataFrame:
     return pd.read_csv(os.path.join(DATA, "market_odds.csv"))
 
 
+def load_market_totals() -> pd.DataFrame:
+    path = os.path.join(DATA, "market_totals.csv")
+    if not os.path.exists(path):
+        return pd.DataFrame(columns=["match_no", "home", "away", "p_over25", "source"])
+    return pd.read_csv(path)
+
+
 def played_matches_for_fit(as_of: pd.Timestamp | None = None) -> pd.DataFrame:
     """
     Devuelve todos los partidos con marcador (historico + grupos jugados)

@@ -31,6 +31,8 @@ from wc2026 import tournament as T
 from wc2026 import simulate as SIM
 from wc2026 import report as RP
 from wc2026 import live as LV
+from wc2026 import picks as PK
+from wc2026 import odds as OD
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LIVE = os.path.join(ROOT, "live")
@@ -112,12 +114,16 @@ def predict_upcoming(params, n_sim, limit=None):
     if limit:
         pend = pend.head(limit)
 
-    rows = []
+    rows, preds_full = [], []
     for _, m in pend.iterrows():
         pred = SIM.predict_match(
             params, teams, venues, cfg, m["home"], m["away"], m["venue"],
             players_by_team=pbt, market_row=_market_row(market, m["home"], m["away"]),
             n_sim=n_sim)
+        pred["match_no"] = int(m["match_no"])
+        pred["date"] = str(m["date"])[:10]
+        pred["group"] = m["group"]
+        preds_full.append(pred)
         p, gm, mb = pred["probs"], pred["markets_goals"], pred["markets_aux"]
         rows.append(dict(
             match_no=int(m["match_no"]), date=str(m["date"])[:10], group=m["group"],
@@ -132,7 +138,53 @@ def predict_upcoming(params, n_sim, limit=None):
     os.makedirs(LIVE, exist_ok=True)
     out.to_csv(os.path.join(LIVE, "predicciones.csv"), index=False)
     print(f"  Predicciones generadas para {len(out)} partidos pendientes.")
-    return out
+    return out, preds_full
+
+
+def fetch_odds():
+    """Capa opcional: descarga momios de mercado si hay ODDS_API_KEY."""
+    if not os.environ.get("ODDS_API_KEY"):
+        print("  Sin ODDS_API_KEY; los picks saldran solo del modelo.")
+        return
+    try:
+        counts = OD.fetch_and_write(IO.load_teams(), IO.load_group_fixtures())
+        print(f"  Momios cargados: {counts['odds_1x2']} de 1X2, "
+              f"{counts['totals']} de over/under.")
+    except Exception as e:
+        print(f"  Ingesta de momios omitida ({type(e).__name__}): {e}")
+
+
+def generate_picks(preds_full):
+    """Capa 6: arma los picks y los publica en live/picks.csv y live/picks.md."""
+    import datetime as dt
+    teams = IO.load_teams()
+    market = IO.load_market_odds()
+    totals = IO.load_market_totals()
+
+    def market_lookup(h, a):
+        if not len(market):
+            return None
+        hit = market[(market["home"] == h) & (market["away"] == a)]
+        return hit.iloc[0] if len(hit) else None
+
+    def totals_lookup(h, a):
+        if not len(totals):
+            return None
+        hit = totals[(totals["home"] == h) & (totals["away"] == a)]
+        return hit.iloc[0] if len(hit) else None
+
+    df = PK.build_table(preds_full, teams, market_lookup, totals_lookup)
+    os.makedirs(LIVE, exist_ok=True)
+    df.drop(columns=["_score", "_rationale"]).to_csv(
+        os.path.join(LIVE, "picks.csv"), index=False)
+    now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    with open(os.path.join(LIVE, "picks.md"), "w", encoding="utf-8") as f:
+        f.write(PK.render_md(df, now))
+    if len(df):
+        top = df.iloc[0]
+        print(f"  Picks generados.  Pick del dia: {top['partido']} -> "
+              f"{top['pick_principal']} ({top['pick_prob']*100:.0f}%).")
+    return df
 
 
 def write_summary(df, preds, fixtures):
@@ -187,7 +239,7 @@ def main():
                     help="Recalcula aunque no haya resultados nuevos.")
     args = ap.parse_args()
 
-    print(f"[1/5] Ingesta de resultados (proveedor: {args.provider})")
+    print(f"[1/6] Ingesta de resultados (proveedor: {args.provider})")
     applied = ingest(args.provider, args.season)
 
     params_exist = os.path.exists(os.path.join(IO.ARTIFACTS, "params.json"))
@@ -195,19 +247,24 @@ def main():
         print("Sin resultados nuevos. Usa --force para recalcular de todos modos.")
         return
 
-    print("[2/5] Reajuste del modelo")
+    print("[2/6] Reajuste del modelo")
     params = refit()
 
-    print("[3/5] Simulacion del torneo")
+    print("[3/6] Simulacion del torneo")
     df = simulate_tournament(params, args.n, args.seed)
 
-    print("[4/5] Prediccion de partidos pendientes")
-    preds = predict_upcoming(params, args.pred_n)
+    print("[4/6] Ingesta de momios de mercado (opcional)")
+    fetch_odds()
 
-    print("[5/5] Resumen")
-    write_summary(df, preds, IO.load_group_fixtures())
+    print("[5/6] Prediccion de partidos pendientes")
+    preds_df, preds_full = predict_upcoming(params, args.pred_n)
 
-    print("Listo. Salidas en live/: torneo.csv, predicciones.csv, resumen.md")
+    print("[6/6] Picks y resumen")
+    generate_picks(preds_full)
+    write_summary(df, preds_df, IO.load_group_fixtures())
+
+    print("Listo. Salidas en live/: torneo.csv, predicciones.csv, "
+          "picks.csv, picks.md, resumen.md")
 
 
 if __name__ == "__main__":

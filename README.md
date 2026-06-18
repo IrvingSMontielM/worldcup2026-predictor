@@ -52,6 +52,33 @@ python scripts/run_tournament.py            # nuevo pronostico
 
 Como el simulador fija los partidos jugados y solo simula los pendientes, las probabilidades se vuelven más nítidas a medida que avanza el torneo. El Elo y el prior del modelo también incorporan cada resultado nuevo.
 
+## Automatización en vivo (GitHub Actions)
+
+El repositorio trae un flujo que automatiza todo el ciclo sin que toques nada, casi como una aplicación. El script `scripts/sync.py` encadena las cinco capas: consulta una API de fútbol, escribe los resultados finalizados en `fixtures_group.csv`, reajusta el modelo, simula el torneo y predice los partidos pendientes. Publica tres salidas en la carpeta `live/`, pensadas para verse directo en GitHub: `live/resumen.md` (un tablero en markdown con los candidatos al título y los próximos partidos), `live/torneo.csv` (la tabla completa de probabilidades) y `live/predicciones.csv` (1X2, goles esperados y mercados de cada partido por jugar).
+
+El workflow `.github/workflows/sync.yml` corre `sync.py` en la nube cada tres horas (cron en UTC) y hace commit de las salidas solo si algo cambió, así que el pronóstico se mantiene vivo sin tu PC encendida. También puedes dispararlo a mano desde la pestaña Actions del repositorio.
+
+Para activarlo con datos reales necesitas una API key gratuita de API-Football (api-sports.io), que en su capa gratuita cubre el Mundial con `league=1` y `season=2026`. En el repositorio ve a Settings, Secrets and variables, Actions, New repository secret, y crea uno llamado exactamente `API_FOOTBALL_KEY` con tu key. El workflow la detecta sola; si no existe, usa un proveedor gratuito de código abierto como mejor esfuerzo. Para correrlo en tu máquina:
+
+```bash
+export API_FOOTBALL_KEY=tu_key        # en Git Bash o Linux
+python scripts/sync.py                # usa API-Football
+python scripts/sync.py --provider opensource   # sin key, mejor esfuerzo
+python scripts/sync.py --provider none --force # sin ingesta, solo recalcula
+```
+
+Una precisión de alcance: el modelo se actualiza por partido cerrado, no minuto a minuto. La ingesta toma marcadores finales, no eventos en juego. Un pronóstico in-play requeriría momios y xG en vivo, que son de paga, y un modelo distinto.
+
+## Picks de apuestas
+
+El ciclo genera de forma automática recomendaciones de apuesta para cada partido pendiente, con énfasis en mercados de baja varianza: doble oportunidad (1X, 12, X2), over/under de goles (1.5 y 2.5), ambos anotan, totales por equipo y líneas sugeridas de tiros, tiros a puerta, corners y tarjetas. Las salidas son `live/picks.md` (un tablero con el pick del día, una tabla resumen y el detalle por partido) y `live/picks.csv` (todas las recomendaciones en formato tabular). También puedes generarlas a mano con `python scripts/make_picks.py` después de ajustar el modelo.
+
+Estas probabilidades salen del grid Dixon-Coles, así que la capa de picks es totalmente automática y no depende de ninguna fuente externa. La selección del pick del día favorece una banda de confianza útil, no apuestas casi seguras que apenas pagan.
+
+El cruce con el mercado es opcional y enriquece la selección calculando el valor del modelo frente al momio. Para automatizarlo, crea un secreto `ODDS_API_KEY` con una key gratuita de The Odds API (the-odds-api.com), que cubre el Mundial con `soccer_fifa_world_cup` y agrega decenas de casas. El módulo `odds.py` descarga el consenso de 1X2 y over/under y lo escribe en `data/market_odds.csv` y `data/market_totals.csv`; a partir de ahí los picks muestran la columna de valor. También puedes llenar esos CSV a mano. Si prefieres específicamente Polymarket y Kalshi, OddsPapi (oddspapi.io) los incluye en su capa gratuita y `odds.py` se adapta a esa fuente.
+
+Una advertencia importante: el modelo no conoce alineaciones, lesiones ni suspensiones de última hora. Los picks son cuantitativos. Revisa noticias de plantel y compara el momio en vivo en tu casa de apuestas antes de cerrar cualquier jugada.
+
 ## Qué hace el modelo por dentro
 
 El corazón es un modelo Dixon-Coles. Para cada selección estima un parámetro de ataque y uno de defensa, y los goles esperados de un partido salen de `exp(intercepto + ataque_local + defensa_visita + ventaja_local)` para el local, y simétrico para la visita. La corrección Dixon-Coles ajusta la probabilidad de los marcadores bajos (0-0, 1-0, 0-1, 1-1), que un Poisson puro modela mal.
@@ -100,7 +127,8 @@ worldcup2026-predictor/
 │   ├── fixtures_group.csv     # 72 partidos de grupos (jugados + pendientes)
 │   ├── bracket.yaml           # estructura de la fase de eliminacion
 │   ├── players.csv            # figura por seleccion (nombres en blanco)
-│   ├── market_odds.csv        # momios de mercado (opcional)
+│   ├── market_odds.csv        # momios 1X2 de mercado (auto o manual)
+│   ├── market_totals.csv      # momios over/under de mercado (auto o manual)
 │   └── matches_history.csv    # historico de internacionales (opcional)
 ├── src/wc2026/
 │   ├── io_load.py             # carga de datos y configuracion
@@ -111,14 +139,27 @@ worldcup2026-predictor/
 │   ├── blend.py               # mezcla con el mercado
 │   ├── simulate.py            # motor de partido (analitico + Monte Carlo)
 │   ├── tournament.py          # simulacion del torneo completo
+│   ├── live.py                # ingesta de resultados en vivo
+│   ├── odds.py                # ingesta de momios de mercado (The Odds API)
+│   ├── picks.py               # motor de picks de apuesta
 │   └── report.py              # reportes en espanol
 ├── scripts/
 │   ├── build_data.py          # genera los CSV base
 │   ├── fit.py                 # ajusta el modelo
 │   ├── predict.py             # predice un partido
 │   ├── run_tournament.py      # simula el torneo
-│   └── update.py              # registra resultados reales
-├── artifacts/                 # parametros y salidas generadas
+│   ├── update.py              # registra resultados reales a mano
+│   ├── make_picks.py          # genera picks de apuesta on-demand
+│   └── sync.py                # ciclo en vivo completo
+├── .github/workflows/
+│   └── sync.yml               # automatizacion en la nube (cron + commit)
+├── live/                      # salidas versionadas del ciclo en vivo
+│   ├── resumen.md             # tablero general (se renderiza en GitHub)
+│   ├── torneo.csv             # tabla de probabilidades
+│   ├── predicciones.csv       # predicciones de partidos pendientes
+│   ├── picks.md               # tablero de picks de apuesta
+│   └── picks.csv              # picks en formato tabular
+├── artifacts/                 # parametros y scratch local (ignorado por git)
 ├── requirements.txt
 ├── LICENSE
 └── README.md

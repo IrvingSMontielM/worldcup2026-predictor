@@ -35,7 +35,7 @@ jobs:
         # Si existe el secreto API_FOOTBALL_KEY usa API-Football; si no, el
         # proveedor gratuito de codigo abierto (mejor esfuerzo, sin key).
         run: |
-          if [ -n "${{ secrets.API_SPORTS_KEY }}" ]; then
+          if [ -n "${{ secrets.API_FOOTBALL_KEY }}" ]; then
             echo "WC_PROVIDER=apifootball" >> "$GITHUB_ENV"
           else
             echo "WC_PROVIDER=opensource" >> "$GITHUB_ENV"
@@ -44,6 +44,7 @@ jobs:
       - name: Ejecutar ciclo en vivo
         env:
           API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: python scripts/sync.py --n 20000
 
       - name: Commit y push de las salidas
