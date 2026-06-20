@@ -1,6 +1,6 @@
 # Picks de apuestas (generado por el modelo)
 
-Ultima actualizacion: **2026-06-20 15:25 UTC**
+Ultima actualizacion: **2026-06-20 21:57 UTC**
 
 Mercados de baja varianza priorizados: doble oportunidad, over/under y ambos anotan. Cuando hay momios cargados se calcula el valor frente al mercado.
 
