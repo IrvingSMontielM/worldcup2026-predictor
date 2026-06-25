@@ -1,6 +1,6 @@
 # Estado del pronostico (en vivo)
 
-Ultima actualizacion: **2026-06-24 21:12 UTC**  
+Ultima actualizacion: **2026-06-25 10:30 UTC**  
 
 Partidos disputados: **23** de 72 en fase de grupos. Pendientes: **49**.
 
@@ -9,16 +9,16 @@ Partidos disputados: **23** de 72 en fase de grupos. Pendientes: **49**.
 
 | Seleccion | Grupo | Campeon | Final | Avanza |
 |---|---|---:|---:|---:|
-| Argentina | J | 25.3% | 38.0% | 100.0% |
-| Francia | I | 19.9% | 33.5% | 100.0% |
-| Inglaterra | L | 14.5% | 24.9% | 100.0% |
-| Espana | H | 9.4% | 17.8% | 94.5% |
-| Brasil | C | 4.6% | 10.1% | 97.8% |
-| Estados Unidos | D | 4.3% | 11.0% | 99.6% |
-| Alemania | E | 4.2% | 10.1% | 99.9% |
-| Portugal | K | 2.8% | 7.1% | 88.0% |
-| Paises Bajos | F | 2.6% | 6.5% | 92.6% |
-| Belgica | G | 2.4% | 6.7% | 94.8% |
+| Argentina | J | 25.8% | 38.4% | 100.0% |
+| Francia | I | 20.2% | 33.4% | 100.0% |
+| Inglaterra | L | 14.0% | 24.2% | 100.0% |
+| Espana | H | 9.0% | 17.9% | 94.5% |
+| Brasil | C | 4.6% | 10.1% | 97.6% |
+| Alemania | E | 4.4% | 10.1% | 99.9% |
+| Estados Unidos | D | 4.2% | 10.8% | 99.6% |
+| Portugal | K | 3.0% | 7.1% | 88.9% |
+| Paises Bajos | F | 2.7% | 6.8% | 92.6% |
+| Belgica | G | 2.4% | 6.7% | 94.7% |
 
 ## Proximos partidos
 
